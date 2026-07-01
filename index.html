@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real Value Tracker</title>
+    <!-- Tailwind CSS 4 Browser CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Material Icons / Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <style>
+      /* Smooth transitions */
+      .transition-all-custom {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      /* Custom scrollbar for clean design */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #C4C7CF;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #A0A3AB;
+      }
+    </style>
+  </head>
+  <body class="bg-[#EFF2F7] md:py-6 flex justify-center items-center min-h-screen m-0 overflow-x-hidden">
+
+    <!-- Responsive Card Wrapper: Native look on Desktop, Full screen on Mobile -->
+    <div class="flex flex-col h-screen w-full md:max-w-[440px] md:h-[840px] md:rounded-[36px] md:shadow-2xl bg-[#F7F9FC] text-[#1B1B1F] font-sans overflow-hidden select-none border border-[#E0E2EC] relative transition-all-custom">
+      
+      <!-- Top Status Indicator Line (Decorative) -->
+      <div class="h-1.5 bg-[#0061A4] w-full"></div>
+
+      <!-- Header Section -->
+      <header class="pt-5 px-6 pb-2">
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-[#001D36]">Real Value Tracker</h1>
+            <p class="text-[10px] text-[#5C5F67] font-semibold uppercase tracking-wider">Asset Liquidity Index • LYD</p>
+          </div>
+          <div class="w-10 h-10 rounded-full bg-[#D1E4FF] flex items-center justify-center text-[#001D36] shadow-sm">
+            <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Scrollable Content Area -->
+      <main class="flex-1 px-4 py-2 overflow-y-auto space-y-4">
+        
+        <!-- Live Totals Section -->
+        <div class="grid grid-cols-2 gap-3">
+          <!-- LYD Total Card -->
+          <div class="bg-[#0061A4] text-white p-4 rounded-3xl shadow-md relative overflow-hidden transition-all-custom hover:shadow-lg">
+            <div class="absolute -top-2 -right-2 p-2 opacity-15">
+              <span class="material-symbols-outlined text-5xl">payments</span>
+            </div>
+            <p class="text-[10px] font-bold uppercase opacity-80 tracking-wider">Total (LYD)</p>
+            <p id="totalLydText" class="text-2xl font-black mt-1 tracking-tight">0.00</p>
+            <p class="text-[9px] mt-2 opacity-70 leading-none">Real spendable value</p>
+          </div>
+          
+          <!-- USD Total Card -->
+          <div class="bg-[#D1E4FF] text-[#001D36] p-4 rounded-3xl shadow-sm border border-[#BAC7DB] transition-all-custom hover:shadow-md">
+            <p class="text-[10px] font-bold uppercase text-[#44474E] tracking-wider">Total (USD)</p>
+            <p id="totalUsdText" class="text-2xl font-black mt-1 tracking-tight">$0.00</p>
+            <p class="text-[9px] mt-2 text-[#44474E] leading-none">Market parity value</p>
+          </div>
+        </div>
+
+        <!-- Hidden Loss Banner -->
+        <div id="hiddenLossCard" class="bg-[#FFDAD6] text-[#410002] p-3 rounded-2xl flex items-start gap-3 border border-[#FFB4AB] transition-all-custom">
+          <span class="material-symbols-outlined text-lg mt-0.5">trending_down</span>
+          <div class="flex-1">
+            <div class="flex justify-between items-center">
+              <p class="text-[10px] font-bold uppercase tracking-wide">Hidden Liquidity Loss</p>
+              <p id="hiddenLossText" class="text-xs font-black">- 0.00 LYD</p>
+            </div>
+            <p class="text-[10px] opacity-80 leading-tight mt-1">The gap between your bank paper value and real market purchasing power.</p>
+          </div>
+        </div>
+
+        <!-- Dynamic Atypical Rate Warning -->
+        <div id="rateWarningBox" class="bg-[#FFF9C4] text-[#5D4037] p-3 rounded-2xl flex items-center gap-2 border border-[#FBC02D] hidden transition-all-custom">
+          <span class="material-symbols-outlined text-[#E65100] text-lg">warning</span>
+          <p class="text-[10px] font-bold leading-tight">Bank rate looks better than cash rate — double check your numbers</p>
+        </div>
+
+        <!-- Inputs Group -->
+        <div class="space-y-3">
+          <!-- Row 1: Side-by-side LYD Inputs -->
+          <div class="grid grid-cols-2 gap-3">
+            <!-- LYD in Bank -->
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-[#E0E2EC] focus-within:border-[#0061A4] focus-within:ring-1 focus-within:ring-[#0061A4] transition-all-custom">
+              <label class="block text-[10px] font-bold text-[#44474E] uppercase mb-1">LYD in Bank</label>
+              <div class="relative flex items-center">
+                <input type="number" id="lydInBank" step="any" placeholder="0.00" class="w-full text-lg font-bold bg-transparent border-none outline-none text-[#0061A4] p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                <button onclick="clearInput('lydInBank')" class="text-slate-400 hover:text-slate-600 focus:outline-none">
+                  <span class="material-symbols-outlined text-base">close</span>
+                </button>
+              </div>
+              <p class="text-[9px] text-[#74777F] leading-tight mt-1">Money subject to withdrawal quotas.</p>
+              <p id="lydInBankError" class="text-[9px] text-[#BA1A1A] font-bold hidden mt-1"></p>
+            </div>
+
+            <!-- LYD in Cash -->
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-[#E0E2EC] focus-within:border-[#0061A4] focus-within:ring-1 focus-within:ring-[#0061A4] transition-all-custom">
+              <label class="block text-[10px] font-bold text-[#44474E] uppercase mb-1">LYD in Cash</label>
+              <div class="relative flex items-center">
+                <input type="number" id="lydInCash" step="any" placeholder="0.00" class="w-full text-lg font-bold bg-transparent border-none outline-none text-[#0061A4] p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                <button onclick="clearInput('lydInCash')" class="text-slate-400 hover:text-slate-600 focus:outline-none">
+                  <span class="material-symbols-outlined text-base">close</span>
+                </button>
+              </div>
+              <p class="text-[9px] text-[#74777F] leading-tight mt-1">Fully liquid, no restrictions on spending.</p>
+              <p id="lydInCashError" class="text-[9px] text-[#BA1A1A] font-bold hidden mt-1"></p>
+            </div>
+          </div>
+
+          <!-- Row 2: Full-width USD Input with Badge -->
+          <div class="bg-white p-3 rounded-2xl shadow-sm border border-[#E0E2EC] focus-within:border-[#0061A4] focus-within:ring-1 focus-within:ring-[#0061A4] transition-all-custom">
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-[10px] font-bold text-[#44474E] uppercase">USD in Cash</label>
+              <span class="text-[8px] font-extrabold px-2 py-0.5 bg-[#F0F1F4] rounded-full text-[#44474E] tracking-wider">STABLE</span>
+            </div>
+            <div class="relative flex items-center">
+              <input type="number" id="usdInCash" step="any" placeholder="0.00" class="w-full text-lg font-bold bg-transparent border-none outline-none text-[#0061A4] p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+              <button onclick="clearInput('usdInCash')" class="text-slate-400 hover:text-slate-600 focus:outline-none">
+                <span class="material-symbols-outlined text-base">close</span>
+              </button>
+            </div>
+            <p class="text-[9px] text-[#74777F] leading-tight mt-1">Physical US Dollars held on hand.</p>
+            <p id="usdInCashError" class="text-[9px] text-[#BA1A1A] font-bold hidden mt-1"></p>
+          </div>
+
+          <!-- Row 3: Dashed Rate Inputs -->
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Cash Rate -->
+            <div class="bg-[#F2F4F7] p-3 rounded-2xl border border-dashed border-[#C4C7CF] focus-within:border-[#0061A4] focus-within:ring-1 focus-within:ring-[#0061A4] transition-all-custom">
+              <label class="block text-[10px] font-bold text-[#44474E] uppercase mb-1">Cash Rate</label>
+              <div class="relative flex items-center">
+                <input type="number" id="cashRate" step="any" placeholder="0.00" class="w-full text-base font-bold bg-transparent border-none outline-none text-[#1B1B1F] p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                <button onclick="clearInput('cashRate')" class="text-slate-400 hover:text-slate-600 focus:outline-none">
+                  <span class="material-symbols-outlined text-base">close</span>
+                </button>
+              </div>
+              <p class="text-[9px] text-[#74777F] leading-tight mt-1">Black market: LYD per 1 USD.</p>
+              <p id="cashRateError" class="text-[9px] text-[#BA1A1A] font-bold hidden mt-1"></p>
+            </div>
+
+            <!-- Bank Rate -->
+            <div class="bg-[#F2F4F7] p-3 rounded-2xl border border-dashed border-[#C4C7CF] focus-within:border-[#0061A4] focus-within:ring-1 focus-within:ring-[#0061A4] transition-all-custom">
+              <label class="block text-[10px] font-bold text-[#44474E] uppercase mb-1">Bank Rate</label>
+              <div class="relative flex items-center">
+                <input type="number" id="bankRate" step="any" placeholder="0.00" class="w-full text-base font-bold bg-transparent border-none outline-none text-[#1B1B1F] p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                <button onclick="clearInput('bankRate')" class="text-slate-400 hover:text-slate-600 focus:outline-none">
+                  <span class="material-symbols-outlined text-base">close</span>
+                </button>
+              </div>
+              <p class="text-[9px] text-[#74777F] leading-tight mt-1">Real bank-to-USD conversion rate.</p>
+              <p id="bankRateError" class="text-[9px] text-[#BA1A1A] font-bold hidden mt-1"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Liquidity Analysis Outputs Card -->
+        <div class="bg-white p-4 rounded-3xl border border-[#E0E2EC] shadow-sm space-y-3.5">
+          <p class="text-[10px] font-bold tracking-widest text-[#44474E] uppercase">LIQUIDITY ANALYSIS</p>
+          
+          <!-- Cash LYD Row -->
+          <div class="flex flex-col">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-semibold text-[#1B1B1F]">Cash LYD</span>
+              <span id="outputCashLyd" class="text-sm font-bold text-[#1B1B1F]">0.00 LYD</span>
+            </div>
+            <span class="text-[9px] text-[#74777F] leading-tight">Counted at full face value — already liquid.</span>
+          </div>
+
+          <div class="h-[1px] bg-[#E0E2EC] opacity-60"></div>
+
+          <!-- Bank LYD Real Value Row -->
+          <div class="flex flex-col">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-semibold text-[#1B1B1F]">Bank LYD (real value)</span>
+              <span id="outputBankLydReal" class="text-sm font-bold text-[#0061A4]">0.00 LYD</span>
+            </div>
+            <span class="text-[9px] text-[#74777F] leading-tight">Adjusted using the bank-balance rate vs cash rate spread.</span>
+          </div>
+
+          <div class="h-[1px] bg-[#E0E2EC] opacity-60"></div>
+
+          <!-- USD Cash Row -->
+          <div class="flex flex-col">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-semibold text-[#1B1B1F]">USD Cash</span>
+              <span id="outputUsdCash" class="text-sm font-bold text-[#1B1B1F]">$0.00</span>
+            </div>
+            <span class="text-[9px] text-[#74777F] leading-tight">Counted at full face value — already liquid.</span>
+          </div>
+
+          <div class="h-[1px] bg-[#E0E2EC] opacity-60"></div>
+
+          <!-- Hidden Loss Row -->
+          <div class="flex flex-col">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-semibold text-[#1B1B1F]">Hidden Loss on Bank LYD</span>
+              <span id="outputHiddenLoss" class="text-sm font-bold text-[#BA1A1A]">0.00 LYD</span>
+            </div>
+            <span class="text-[9px] text-[#74777F] leading-tight">The gap between what bank LYD looks like vs what it's really worth today.</span>
+          </div>
+
+          <div class="h-[1px] bg-[#E0E2EC] opacity-60"></div>
+
+          <!-- Total LYD Row -->
+          <div class="flex flex-col">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-bold text-[#1B1B1F]">Total (LYD)</span>
+              <span id="outputTotalLyd" class="text-sm font-extrabold text-[#0061A4]">0.00 LYD</span>
+            </div>
+            <span class="text-[9px] text-[#74777F] leading-tight">All assets valued in real, spendable LYD.</span>
+          </div>
+
+          <div class="h-[1px] bg-[#E0E2EC] opacity-60"></div>
+
+          <!-- Total USD Row -->
+          <div class="flex flex-col">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-bold text-[#1B1B1F]">Total (USD)</span>
+              <span id="outputTotalUsd" class="text-sm font-extrabold text-[#0061A4]">$0.00</span>
+            </div>
+            <span class="text-[9px] text-[#74777F] leading-tight">Same total, expressed in US dollars.</span>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- Footer / Actions Panel -->
+      <footer class="px-4 pb-6 pt-2">
+        <div class="flex gap-3">
+          <!-- Copy Results Button -->
+          <button onclick="copyReport()" class="flex-1 h-14 bg-[#0061A4] hover:bg-[#004A7D] active:scale-[0.98] text-white rounded-full font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all-custom cursor-pointer">
+            <span class="material-symbols-outlined text-[20px]">content_copy</span>
+            <span>Copy Results</span>
+          </button>
+          
+          <!-- Reset Defaults Button -->
+          <button onclick="resetDefaults()" title="Reset Defaults" class="w-14 h-14 bg-white border border-[#E0E2EC] hover:bg-[#F2F4F7] active:scale-[0.95] rounded-full flex items-center justify-center text-[#44474E] shadow-sm transition-all-custom cursor-pointer">
+            <span class="material-symbols-outlined">history</span>
+          </button>
+        </div>
+        
+        <!-- Persistence Status & Updated Time -->
+        <p id="lastUpdated" class="text-center text-[10px] text-[#74777F] mt-4 font-semibold">
+          Values persist locally. Last updated: Real-time
+        </p>
+      </footer>
+
+      <!-- Custom Elegant Web Toast -->
+      <div id="webToast" class="absolute bottom-24 left-1/2 transform -translate-x-1/2 px-4 py-2.5 bg-[#001D36] text-[#D1E4FF] text-xs font-bold rounded-full shadow-xl flex items-center gap-2 opacity-0 pointer-events-none transition-all-custom z-50">
+        <span class="material-symbols-outlined text-sm text-[#9ECAFF]">check_circle</span>
+        <span id="webToastText">Results copied to clipboard!</span>
+      </div>
+
+    </div>
+
+    <!-- Live Interactivity Script -->
+    <script>
+      // Sane Default Values (Matches Design HTML)
+      const DEFAULTS = {
+        lydInBank: "25000.00",
+        lydInCash: "5000.00",
+        usdInCash: "1200.00",
+        cashRate: "7.25",
+        bankRate: "8.40"
+      };
+
+      // Inputs DOM references
+      const inputs = {
+        lydInBank: document.getElementById('lydInBank'),
+        lydInCash: document.getElementById('lydInCash'),
+        usdInCash: document.getElementById('usdInCash'),
+        cashRate: document.getElementById('cashRate'),
+        bankRate: document.getElementById('bankRate')
+      };
+
+      // Errors DOM references
+      const errors = {
+        lydInBank: document.getElementById('lydInBankError'),
+        lydInCash: document.getElementById('lydInCashError'),
+        usdInCash: document.getElementById('usdInCashError'),
+        cashRate: document.getElementById('cashRateError'),
+        bankRate: document.getElementById('bankRateError')
+      };
+
+      // On window load, restore saved values or apply defaults, then calculate
+      window.onload = function() {
+        for (const key in inputs) {
+          const saved = localStorage.getItem(`tracker_${key}`);
+          inputs[key].value = saved !== null ? saved : DEFAULTS[key];
+          
+          // Wire up immediate real-time calculations
+          inputs[key].addEventListener('input', () => {
+            validateAndCalculate();
+            saveValue(key, inputs[key].value);
+          });
+        }
+        validateAndCalculate();
+      };
+
+      function saveValue(key, val) {
+        localStorage.setItem(`tracker_${key}`, val);
+      }
+
+      function clearInput(id) {
+        inputs[id].value = "";
+        validateAndCalculate();
+        saveValue(id, "");
+        inputs[id].focus();
+      }
+
+      function resetDefaults() {
+        for (const key in DEFAULTS) {
+          inputs[key].value = DEFAULTS[key];
+          saveValue(key, DEFAULTS[key]);
+        }
+        validateAndCalculate();
+        showToast("Defaults restored successfully!");
+      }
+
+      // Formatting helper (Locale US with 2 decimal places)
+      const numFormat = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      function formatNum(val) {
+        return numFormat.format(val);
+      }
+
+      function validateAndCalculate() {
+        let hasErrors = false;
+
+        // Parse & validate values
+        const values = {};
+        for (const key in inputs) {
+          const raw = inputs[key].value.trim();
+          errors[key].classList.add('hidden');
+          errors[key].innerText = "";
+
+          if (raw === "") {
+            values[key] = 0.0;
+          } else {
+            const parsed = parseFloat(raw);
+            if (isNaN(parsed)) {
+              errors[key].innerText = "Invalid number format";
+              errors[key].classList.remove('hidden');
+              values[key] = null;
+              hasErrors = true;
+            } else if (parsed < 0) {
+              errors[key].innerText = "Value must be non-negative";
+              errors[key].classList.remove('hidden');
+              values[key] = null;
+              hasErrors = true;
+            } else {
+              values[key] = parsed;
+            }
+          }
+        }
+
+        if (hasErrors) {
+          // Keep outputs matching zero or current calculation state gracefully
+          return;
+        }
+
+        const b = values.lydInBank;
+        const c = values.lydInCash;
+        const u = values.usdInCash;
+        const rCash = values.cashRate;
+        const rBank = values.bankRate;
+
+        // Atypical rate warning box
+        const rateWarningBox = document.getElementById('rateWarningBox');
+        if (rBank > 0 && rCash > 0 && rBank < rCash) {
+          rateWarningBox.classList.remove('hidden');
+        } else {
+          rateWarningBox.classList.add('hidden');
+        }
+
+        // Calculations:
+        // Bank LYD Real Value = (LYD in Bank ÷ Bank-Balance Rate) × Cash Rate
+        const bankReal = rBank === 0 ? 0.0 : (b / rBank) * rCash;
+
+        // Hidden Loss = LYD in Bank − Bank LYD Real Value
+        const hiddenLoss = b - bankReal;
+
+        // Total (LYD) = LYD in Cash + Bank LYD Real Value + (USD in Cash × Cash Rate)
+        const totalLyd = c + bankReal + (u * rCash);
+
+        // Total (USD) = USD in Cash + (LYD in Cash ÷ Cash Rate) + (LYD in Bank ÷ Bank-Balance Rate)
+        const totalUsd = u + (rCash === 0 ? 0.0 : c / rCash) + (rBank === 0 ? 0.0 : b / rBank);
+
+        // Update UI Outputs
+        document.getElementById('totalLydText').innerText = formatNum(totalLyd);
+        document.getElementById('totalUsdText').innerText = "$" + formatNum(totalUsd);
+        
+        // Output detailed breakdown card rows
+        document.getElementById('outputCashLyd').innerText = formatNum(c) + " LYD";
+        document.getElementById('outputBankLydReal').innerText = formatNum(bankReal) + " LYD";
+        document.getElementById('outputUsdCash').innerText = "$" + formatNum(u);
+        document.getElementById('outputHiddenLoss').innerText = formatNum(hiddenLoss) + " LYD";
+        document.getElementById('outputTotalLyd').innerText = formatNum(totalLyd) + " LYD";
+        document.getElementById('outputTotalUsd').innerText = "$" + formatNum(totalUsd);
+
+        // Update Hidden Loss Banner
+        document.getElementById('hiddenLossText').innerText = "- " + formatNum(hiddenLoss) + " LYD";
+        
+        // Update the timestamp dynamically
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+        const displayHours = now.getHours() % 12 || 12;
+        document.getElementById('lastUpdated').innerText = `Values persist locally. Last updated: ${displayHours}:${minutes} ${ampm}`;
+      }
+
+      function showToast(message) {
+        const toast = document.getElementById('webToast');
+        const toastText = document.getElementById('webToastText');
+        toastText.innerText = message;
+        
+        toast.classList.remove('opacity-0', 'pointer-events-none');
+        toast.classList.add('opacity-100');
+        
+        setTimeout(() => {
+          toast.classList.remove('opacity-100');
+          toast.classList.add('opacity-0', 'pointer-events-none');
+        }, 3000);
+      }
+
+      function copyReport() {
+        const b = parseFloat(inputs.lydInBank.value) || 0;
+        const c = parseFloat(inputs.lydInCash.value) || 0;
+        const u = parseFloat(inputs.usdInCash.value) || 0;
+        const rCash = parseFloat(inputs.cashRate.value) || 0;
+        const rBank = parseFloat(inputs.bankRate.value) || 0;
+
+        const bankReal = rBank === 0 ? 0.0 : (b / rBank) * rCash;
+        const hiddenLoss = b - bankReal;
+        const totalLyd = c + bankReal + (u * rCash);
+        const totalUsd = u + (rCash === 0 ? 0.0 : c / rCash) + (rBank === 0 ? 0.0 : b / rBank);
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        const reportText = `--- REAL VALUE TRACKER REPORT ---
+Date/Time: ${dateStr}
+
+[Assets Breakdown]
+- Cash LYD: ${formatNum(c)} LYD
+- Bank LYD (Real Value): ${formatNum(bankReal)} LYD
+- USD Cash: $${formatNum(u)}
+- Hidden Bank Loss: ${formatNum(hiddenLoss)} LYD
+
+[Market Rates Applied]
+- Cash USD/LYD: ${formatNum(rCash)}
+- Bank-Balance USD/LYD: ${formatNum(rBank)}
+
+[Calculated Totals]
+- TOTAL ASSETS IN REAL LYD: ${formatNum(totalLyd)} LYD
+- TOTAL ASSETS IN USD: $${formatNum(totalUsd)}
+---------------------------------
+Accounting for withdrawal limits and bank balance discount spreads.`;
+
+        navigator.clipboard.writeText(reportText).then(() => {
+          showToast("Results copied to clipboard!");
+        }).catch(err => {
+          console.error("Failed to copy report: ", err);
+          showToast("Failed to copy results.");
+        });
+      }
+    </script>
+  </body>
+</html>
