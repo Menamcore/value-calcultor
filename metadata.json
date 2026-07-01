@@ -1,0 +1,6 @@
+{
+  "name": "Real Value Tracker",
+  "description": "Shows Libyan Dinar (LYD) asset holders the true, real-world value of their money, accounting for the bank-vs-cash spread.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

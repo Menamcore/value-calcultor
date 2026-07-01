@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Centered bold shield of value protection -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20 L24,31 V57 C24,73.5 36.6,88.2 54,93 C71.4,88.2 84,73.5 84,57 V31 L54,20 Z" />
+    <!-- Inner design of dollar and checkmark in contrast color -->
+    <path
+        android:fillColor="#004D40"
+        android:pathData="M54,30 L32,38 V57 C32,69 41.6,79.5 54,83 C66.4,79.5 76,69 76,57 V38 L54,30 Z M54,73 C46,69 40,60 40,51 H46 L54,58 L68,44 L72,48 L54,68 L48,62 L54,68 Z" />
+</vector>
